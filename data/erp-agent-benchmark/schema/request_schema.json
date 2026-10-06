@@ -1,0 +1,14 @@
+{
+  "request_id": "REQ001",
+  "organization_id": "ORG001",
+  "user_id": "U001",
+  "natural_language_request": "Create a purchase order for 100 motors from Vendor X.",
+  "expected_intent": "create_purchase_order",
+  "expected_parameters": {
+    "product": "Motor A",
+    "quantity": 100,
+    "supplier": "Vendor X"
+  },
+  "capability_id": "create_purchase_order",
+  "expected_decision": "ALLOW"
+}

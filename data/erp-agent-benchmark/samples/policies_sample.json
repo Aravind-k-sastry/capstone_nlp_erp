@@ -1,0 +1,12 @@
+[
+  {
+    "policy_id": "POL001",
+    "organization_id": "ORG001",
+    "role": "purchasing_manager",
+    "capability_id": "create_purchase_order",
+    "maximum_autonomous_amount": 500000,
+    "approval_required_above": 500000,
+    "approver_role": "CFO",
+    "policy_version": "1.0"
+  }
+]

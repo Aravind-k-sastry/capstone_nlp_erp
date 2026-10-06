@@ -1,0 +1,22 @@
+[
+  {
+    "id": "tool_sample_001",
+    "instruction": "Check inventory and then create a purchase order for the shortage.",
+    "tools": [
+      {
+        "name": "get_inventory",
+        "parameters": [
+          "product"
+        ]
+      },
+      {
+        "name": "create_purchase_order",
+        "parameters": [
+          "product",
+          "quantity",
+          "supplier"
+        ]
+      }
+    ]
+  }
+]
