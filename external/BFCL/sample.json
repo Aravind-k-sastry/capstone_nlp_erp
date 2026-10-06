@@ -1,0 +1,13 @@
+[
+  {
+    "id": "bfcl_sample_001",
+    "question": "Create a purchase order for 100 units of Motor A.",
+    "function": {
+      "name": "create_purchase_order",
+      "arguments": {
+        "product": "Motor A",
+        "quantity": 100
+      }
+    }
+  }
+]
