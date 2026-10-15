@@ -1,0 +1,21 @@
+{
+  "version": "0.1.0",
+  "description": "Proposed MCP tools for synthetic procure-to-pay benchmark. Arguments shown in reference plans; server not yet implemented.",
+  "tools": [
+    {"name":"create_purchase_requisition","required":["sku","quantity","department","needed_by"],"returns":["requisition_id"]},
+    {"name":"create_purchase_order","required":["supplier_id","items","currency","status"],"returns":["po_id"]},
+    {"name":"get_supplier","required":["supplier_id"]},
+    {"name":"get_purchase_order","required":["po_id"]},
+    {"name":"update_purchase_order","required":["po_id","sku","quantity"]},
+    {"name":"submit_purchase_order","required":["po_id"]},
+    {"name":"check_approval_authority","required":["po_id"]},
+    {"name":"approve_purchase_order","required":["po_id"]},
+    {"name":"get_purchase_order_status","required":["po_id"]},
+    {"name":"create_goods_receipt","required":["po_id","sku","accepted_quantity","rejected_quantity"],"returns":["receipt_id"]},
+    {"name":"get_goods_receipt","required":["receipt_id"]},
+    {"name":"get_goods_receipts","required":["po_id"]},
+    {"name":"find_supplier_invoice","required":["supplier_id","invoice_number"]},
+    {"name":"validate_invoice_match","required":["po_id","invoice_number","quantity","unit_price"]},
+    {"name":"create_supplier_invoice","required":["supplier_id","invoice_number","po_id","receipt_id","sku","quantity","unit_price"],"returns":["erp_invoice_id"]}
+  ]
+}
