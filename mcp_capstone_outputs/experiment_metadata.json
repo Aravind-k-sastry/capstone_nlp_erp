@@ -1,0 +1,50 @@
+{
+  "dataset_source": "https://raw.githubusercontent.com/Aravind-k-sastry/capstone_nlp_erp/main/data/P2P_MCP_4000_Additional_Test_Prompts.csv",
+  "dataset_sha256": "4ec8bd793a3f0dceedceae3e74d4a2bc31d8427ef2c7528cadec6dbd444534a4",
+  "seed": 42,
+  "train_turns": 2320,
+  "validation_turns": 840,
+  "test_turns": 840,
+  "train_conversations": 2200,
+  "validation_conversations": 800,
+  "test_conversations": 800,
+  "fewshot_conversations": [
+    "P2P-EXT-01141",
+    "P2P-EXT-01142",
+    "P2P-EXT-01902",
+    "P2P-EXT-01524",
+    "P2P-EXT-01144",
+    "P2P-EXT-01145",
+    "P2P-EXT-03426",
+    "P2P-EXT-00767",
+    "P2P-EXT-03428",
+    "P2P-EXT-03429",
+    "P2P-EXT-02670",
+    "P2P-EXT-00771",
+    "P2P-EXT-02672",
+    "P2P-EXT-02293",
+    "P2P-EXT-00774",
+    "P2P-EXT-00775",
+    "P2P-EXT-00776",
+    "P2P-EXT-01157",
+    "P2P-EXT-01158",
+    "P2P-EXT-01159"
+  ],
+  "system_prompt_sha256": "9fea5626190395acbe4b8f2b0a1ab75a66efd38c609f5b28f0d680f605aee930",
+  "model_registry": {
+    "gemma": {
+      "provider": "openai",
+      "model": "google/gemma-4-26B-A4B-it"
+    },
+    "openai": {
+      "provider": "openai",
+      "model": "openai/gpt-oss-120b"
+    },
+    "Llama": {
+      "provider": "openai",
+      "model": "meta-llama/Llama-3.3-70B-Instruct"
+    }
+  },
+  "validation_enabled": true,
+  "final_test_enabled": true
+}
