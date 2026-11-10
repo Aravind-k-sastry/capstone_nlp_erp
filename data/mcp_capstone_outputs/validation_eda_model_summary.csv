@@ -1,0 +1,4 @@
+model_alias,n,strict_pct,semantic_exec_pct,api_ok,invalid_json,api_error
+Llama,840,20.7,31.7,97.7,0.0,2.3
+gemma,840,26.0,37.9,84.8,13.0,2.3
+openai,840,21.1,27.0,97.7,0.0,2.3

@@ -1,0 +1,4 @@
+model,prompts_with_params,all_params_captured_YES,all_params_captured_NO,all_params_captured_pct,prompts_with_predicted_params,all_values_correct_YES,all_values_correct_NO,all_values_correct_pct
+Llama,750,271,479,36.13,710,180,530,25.35
+gemma,655,140,515,21.37,615,474,141,77.07
+openai,750,199,551,26.53,610,283,327,46.39
