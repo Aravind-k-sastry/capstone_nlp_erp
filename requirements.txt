@@ -1,0 +1,10 @@
+# Unpinned notebook dependencies; exact historical versions were not recorded.
+pandas
+numpy
+matplotlib
+scipy
+scikit-learn
+openai
+google-genai
+ipython
+jupyter
