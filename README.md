@@ -1,61 +1,77 @@
-[README.md](https://github.com/user-attachments/files/33474439/README.md)
-# Synthetic Procure-to-Pay Agent Benchmark (Pilot v0.1)
+# ERP-Agnostic MCP Tool-Call Planning: Procure-to-Pay Capstone
 
-**400 synthetic scenarios, 420 user turns, 20 scenario families, 15 proposed MCP tools.** A research-oriented dataset for studying how enterprise agents translate employee instructions into tool calls, handle clarification and policy exceptions, and eventually execute procure-to-pay workflows.
+**Research repository | Synthetic benchmark | Offline tool-call evaluation (not live ERP execution)**
 
-> **Status: structurally validated reference plans; NOT execution-validated ground truth.** No real ERP or MCP server has been used to verify business outcomes. Do not claim real-world representativeness or transaction correctness based solely on this dataset.
+This capstone evaluates whether pretrained open-weight language models can translate natural-language procure-to-pay (P2P) requests into ERP-agnostic Model Context Protocol (MCP) tool-call plans. It compares three LLMs with an executed deterministic heuristic baseline. The commercial motivation is cost-sensitive ERP automation for small and medium-sized manufacturers; inference costs and willingness to pay were not measured.
 
-## Files
+## Research questions
 
-- `data/p2p_conversations.csv`: one row per **user turn**. `reference_tool_calls_json`, `conversation_context_json`, `scenario_initial_state_json` and `expected_outcome_json` are JSON strings inside CSV cells.
-- `data/p2p_conversations.jsonl`: same records with JSON objects/arrays instead of embedded strings.
-- `data/scenario_metadata.jsonl`: scenario family, complexity, number of turns, synthetic provenance.
-- `tool_catalog.json`: tool names and required fields (descriptive contracts, not complete JSON Schema).
-- `scripts/validate_dataset.py`: validates counts, JSON parsing, known tool names, unique IDs, and `$binding` ordering.
+- **RQ1 — Routing:** Correct MCP tool-call plan and execute/refuse/clarify behavior.
+- **RQ2 — Parameter identification:** All gold-required parameter paths present, with no unsupported extra paths. Use **760 gold-eligible held-out turns per system**; malformed predictions are failures.
+- **RQ3 — Value correctness:** All predicted, gold-aligned parameter values correct. This metric is **conditional on prediction**, not end-to-end transaction success.
+- **Exploratory baseline comparison:** Compare deterministic rules with LLMs on the same held-out turns.
 
-## Example
+The synthetic gold-reference JSON is assumed correct. Independent semantic grounding and live ERP execution validation are outside the scope of this study. The 95% target is an evaluation threshold, not a production guarantee.
 
-A request such as "Create a purchase order ... and submit it" has two reference calls:
+## Dataset and experiment
 
-```json
-[
-  {"tool":"create_purchase_order","arguments":{"supplier_id":"SUP-001","items":[{"sku":"SKU-101","quantity":10,"unit_price":800}],"currency":"INR","status":"draft"},"result_binding":"po_id"},
-  {"tool":"submit_purchase_order","arguments":{"po_id":"$po_id"}}
-]
-```
+**4,000 synthetic user turns** were partitioned by conversation into **2,320 training**, **840 validation**, and **840 held-out test** turns (random seed **42**). The same held-out turns were evaluated by all four systems. Scenario-family labels overlap across splits, limiting claims about unseen-family generalization.
 
-`$po_id` denotes the ID returned by an earlier call, not a literal purchase order ID. Optional read-only lookups may be valid even when omitted from the reference. **Compare required actions, arguments, dependencies, forbidden actions, and final ERP state—not byte-for-byte call sequences.**
+- [Expanded input dataset](data/P2P_MCP_4000_Additional_Test_Prompts.csv)
+- [Processed dataset](mcp_capstone_outputs/cleaned_dataset.csv)
+- [Split assignments](mcp_capstone_outputs/split_assignments.csv)
+- [Experiment metadata](mcp_capstone_outputs/experiment_metadata.json)
+- [Historical 400-conversation / 420-turn pilot](docs/pilot/README.md)
 
-## Scenario families
+## Evaluated systems
 
-20 examples per family: `po_draft`, `po_submit`, `po_requisition`, `po_update`, `po_status`, `po_approve`, `po_unauth`, `po_inactive`, `po_missing`, `po_conflict`, `receipt_full`, `receipt_partial`, `receipt_damage`, `receipt_unapproved`, `receipt_excess`, `invoice_match`, `invoice_quantity`, `invoice_price`, `invoice_duplicate`, `po_then_status`.
+| System | Identifier or method |
+|---|---|
+| Llama 3.3 70B | `meta-llama/Llama-3.3-70B-Instruct` |
+| Gemma 4 26B A4B | `google/gemma-4-26B-A4B-it` |
+| GPT-OSS 120B | `openai/gpt-oss-120b` |
+| Heuristic baseline | Deterministic keyword / rule-based extraction |
 
-`po_missing` has two user turns per conversation: a missing-supplier request requiring clarification, followed by a supplier-providing turn requiring a tool call. Thus 400 conversations produce 420 rows.
+These open-weight model families were chosen from established developers to investigate provider-controlled deployment options. The experiment does not establish that self-hosting is cheaper than proprietary APIs. The metadata records an OpenAI-compatible inference interface, not proof of self-hosted inference.
 
-## Synthetic business rules (assumptions)
+## Held-out results
 
-1. Supplier and product must be active to create a PO.
-2. PO value above INR 50,000 requires explicit approval; lower values are auto-approved on submission.
-3. Draft POs can be edited; approved POs cannot be edited through the provided update tool.
-4. Goods receipts require an approved PO; accepted quantities must not exceed outstanding ordered quantities.
-5. Invoices require a matching PO and goods receipt; quantity and unit price must match and duplicate supplier invoice numbers are rejected.
-6. Only an actor with verified approval authority may approve a PO.
-7. Missing or contradictory instructions trigger clarification; unauthorized or prohibited requests are refused.
+| System | RQ1 (n=840) | RQ2 (n=760) | RQ3 (conditional) |
+|---|---:|---:|---:|
+| Llama | 223/840 (26.55%) | 120/760 (15.79%) | 187/720 (25.97%) |
+| Gemma | 278/840 (33.10%) | 139/760 (18.29%) | 480/621 (77.29%) |
+| GPT-OSS | 223/840 (26.55%) | 123/760 (16.18%) | 298/614 (48.53%) |
+| Heuristic baseline | 533/840 (63.45%) | 520/760 (68.42%) | 720/720 (100.00%) |
 
-These policies are illustrative and are not claims about SAP, Oracle, Odoo or other commercial ERPs.
+The heuristic baseline leads on observed RQ1 and RQ2. Its perfect **conditional** RQ3 score does not imply complete arguments or successful ERP transactions.
 
-## Generation method and limitations
+**Scoring reconciliation required:** The committed `mcp_capstone_outputs/final_test_hypothesis_tests_95pct.csv` currently uses **660** as Gemma's RQ2 denominator (139/660), while the gold-based scoring uses **760** (139/760). This README reports the gold-based metric. Regenerate the hypothesis-test CSV with `gold_eligible` and `gb_all_required_present` before citing it as the final statistical result.
 
-All 400 scenarios were **generated from 20 parameterized templates with a fixed random seed**. They are synthetic, not sourced from employee logs, and **not 400 statistically independent workflow types**. Scenario parameters vary (SKUs, suppliers, quantities, prices, PO and invoice IDs); language variety remains limited. The initial-state JSON is a minimal scenario fixture, not a complete relational ERP database. Some refusal plans contain read-only diagnostic calls, and clarify plans contain no MCP mutation calls.
+## Repository navigation
 
-The current validator checks structural integrity only. It **does not execute** reference plans or validate that initial state and business semantics fully agree. Before using this as a research benchmark: implement the ERP simulator and MCP schemas; execute and verify every reference plan; independently review semantic alignment; add varied natural-language paraphrases; group train/test splits by scenario family; pilot effect sizes and conduct a power analysis. Do not report `validation_status=structural_validated_unexecuted` as successful ERP execution.
+| Location | Purpose |
+|---|---|
+| [Main Colab notebook](P2P_MCP_Three_Model_Colab_Experiment_95pct_Documented.ipynb) | Experiment workflow; verify committed version matches final local scorer |
+| [data/](data/) | Historical pilot and expanded synthetic source |
+| [tool_catalog.json](tool_catalog.json) | Descriptive MCP tool contracts |
+| [scripts/validate_dataset.py](scripts/validate_dataset.py) | **Pilot-only** structural validator; asserts 400 conversations / 420 turns |
+| [mcp_capstone_outputs/](mcp_capstone_outputs/) | Processed data, predictions, scores, charts, metadata |
+| [Repository guide](docs/REPOSITORY_GUIDE.md) | Organization and reproducibility checks |
+| [requirements.txt](requirements.txt) | Python environment dependencies |
 
-## Run structural checks
+## Getting started
 
-```bash
-python scripts/validate_dataset.py
-```
+1. Clone this repository and create a Python environment, or open the notebook in Google Colab.
+2. Install packages: `pip install -r requirements.txt`.
+3. Configure the notebook's input paths and model endpoint credentials; **never commit API keys**.
+4. For the **historical pilot only**, run `python scripts/validate_dataset.py`.
+5. Run the final experiment notebook in cell order if you have inference access; model calls may incur costs. For offline inspection, use committed results under `mcp_capstone_outputs/`.
+6. Inspect `final_test_scored_long.csv`, the seven `fig*.png` charts, and the scoring-denominator caveat above.
 
-## Reproducibility and license
+This repository does not currently establish a verified one-command offline replay or actual ERP/MCP execution. The main notebook and scoring implementation should be checked against the final locally tested version.
 
-Dataset creation used deterministic programmatic templates and a fixed seed (`20261015`), with no external confidential records. **Suggested license:** CC BY 4.0 for the dataset and MIT for scripts; add explicit `LICENSE` files once the repository owner selects licensing. No real organization, supplier or employee data is included.
+## Limitations and license
+
+The benchmark is synthetic and its gold references were not independently execution-validated. Family overlap across partitions and conditional RQ3 restrict generalizability. These scores are not evidence of production transaction safety.
+
+No explicit license was verified in the repository. Suggested licenses in the pilot documentation do not constitute permission; add LICENSE files only after selecting terms.
